@@ -46,8 +46,28 @@ class OBJECT_OT_ProjectClipboardOnSelected(bpy.types.Operator):
         obj = context.object
 
         image_location = self._save_image_from_clipboard(obj)
-        self._create_shared_texture_material(obj, image_location)
+        material = self._create_shared_texture_material(obj, image_location)
         
+        view_3d_settings = self._get_3d_view_settings()
+        rv3d = self._get_first_region_3d()
+        camera = [selected for selected in bpy.context.selected_objects if selected.type == "CAMERA"][0]
+        previous_camera = bpy.data.scenes["Scene"].camera
+        bpy.data.scenes["Scene"].camera = camera
+        rv3d.view_perspective = 'CAMERA'
+
+        area = self._get_first_VIEW_3D_area()
+        region = self._get_first_WINDOW_region(area=area)
+
+        override = {'area': area, 'region': region, 'edit_object': bpy.context.edit_object}
+        bpy.ops.uv.project_from_view(override, camera_bounds=True, correct_aspect=True, scale_to_bounds=False)
+
+        bpy.data.scenes["Scene"].camera = previous_camera
+        self._set_3d_view_settings(view_3d_settings)
+
+        material_index = next(index for index, slot in enumerate(obj.material_slots) if slot.material == material)
+        bpy.context.object.active_material_index = material_index
+        bpy.ops.object.material_slot_assign()
+
         # save current 3D view
         # move 3D view to selected camera
         # use "Project from view" operator
@@ -128,6 +148,8 @@ class OBJECT_OT_ProjectClipboardOnSelected(bpy.types.Operator):
         links.new(texture_node.outputs['Color'], shared_node.inputs["Color"])
         links.new(texture_node.outputs['Alpha'], shared_node.inputs["Alpha"])
 
+        return material
+
     def _get_shared_node_tree(self, obj):
         shared_node_tree = obj.clipboard_projection_node_group
         if shared_node_tree is not None:
@@ -165,6 +187,38 @@ class OBJECT_OT_ProjectClipboardOnSelected(bpy.types.Operator):
             return False
 
         return True
+    
+    def _get_first_VIEW_3D_area(self):
+        return next(area for area in bpy.context.screen.areas if area.type == 'VIEW_3D')
+    
+    def _get_first_WINDOW_region(self, area=None):
+        if not area:
+            area = self._get_first_VIEW_3D_area()
+        
+        return next(region for region in area.regions if region.type == 'WINDOW')
+    
+    def _get_first_region_3d(self):
+        area = self._get_first_VIEW_3D_area()
+        if len(area.spaces) == 0:
+            raise RuntimeError("No spaces found in VIEW_3D, cannot perform action")
+
+        return area.spaces[0].region_3d
+    
+    def _get_3d_view_settings(self):
+        rv3d = self._get_first_region_3d()
+        return {
+            'view_location': rv3d.view_location.copy(),
+            'view_rotation': rv3d.view_rotation.copy(),
+            'view_distance': rv3d.view_distance,
+            'view_perspective': rv3d.view_perspective
+        }
+    
+    def _set_3d_view_settings(self, view_3d_settings):
+        rv3d = self._get_first_region_3d()
+        rv3d.view_location = view_3d_settings['view_location']
+        rv3d.view_rotation = view_3d_settings['view_rotation']
+        rv3d.view_distance = view_3d_settings['view_distance']
+        rv3d.view_perspective = view_3d_settings['view_perspective']
 
 
 def register():
