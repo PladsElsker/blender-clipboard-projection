@@ -1,15 +1,11 @@
-bl_info = {
-    "name": "Project Texture from Clipboard",
-    "author": "Plads Elsker",
-    "blender": (2, 80, 0),
-    "category": "Camera",
-}
-
-
 import bpy
 import os
-from datetime import datetime
-from PIL import ImageGrab
+import asyncio
+
+from .clipboard_ops import save_image_from_clipboard
+from .async_file_ops import delete_unused_cbpr_texture_images
+from .shortcuts import shortcut_manager
+from .view_3d_camera_context import VIEW_3D_CameraContext
 
 
 class ClipboardProjectionPanel(bpy.types.Panel):
@@ -31,6 +27,7 @@ class ClipboardProjectionPanel(bpy.types.Panel):
 class OBJECT_OT_ProjectClipboardOnSelected(bpy.types.Operator):
     bl_label = "Project Clipboard on Faces"
     bl_idname = "wm.project_clipboard_on_selected"
+    bl_options = {"REGISTER", "UNDO"}
     
     @classmethod
     def poll(cls, context):
@@ -45,36 +42,22 @@ class OBJECT_OT_ProjectClipboardOnSelected(bpy.types.Operator):
 
         obj = context.object
 
-        image_location = self._save_image_from_clipboard(obj)
+        image_location = save_image_from_clipboard(obj.clipboard_projection_textures_location)
         material = self._create_shared_texture_material(obj, image_location)
-        
-        view_3d_settings = self._get_3d_view_settings()
-        rv3d = self._get_first_region_3d()
-        camera = [selected for selected in bpy.context.selected_objects if selected.type == "CAMERA"][0]
-        previous_camera = bpy.data.scenes["Scene"].camera
-        bpy.data.scenes["Scene"].camera = camera
-        rv3d.view_perspective = 'CAMERA'
-
-        area = self._get_first_VIEW_3D_area()
-        region = self._get_first_WINDOW_region(area=area)
-
-        override = {'area': area, 'region': region, 'edit_object': bpy.context.edit_object}
-        bpy.ops.uv.project_from_view(override, camera_bounds=True, correct_aspect=True, scale_to_bounds=False)
-
-        bpy.data.scenes["Scene"].camera = previous_camera
-        self._set_3d_view_settings(view_3d_settings)
-
         material_index = next(index for index, slot in enumerate(obj.material_slots) if slot.material == material)
         bpy.context.object.active_material_index = material_index
-        bpy.ops.object.material_slot_assign()
 
-        # save current 3D view
-        # move 3D view to selected camera
-        # use "Project from view" operator
-        # restore previous 3D view
+        camera = [selected for selected in bpy.context.selected_objects if selected.type == "CAMERA"][0]
+
+        with VIEW_3D_CameraContext(camera) as camera_context:
+            override = {'area': camera_context.area, 'region': camera_context.region, 'edit_object': bpy.context.edit_object}
+            bpy.ops.uv.project_from_view(override, camera_bounds=True, correct_aspect=True, scale_to_bounds=False)
+
+        bpy.ops.object.material_slot_assign()
         
-        # assign material to selected faces
-        
+        loop = asyncio.get_event_loop()
+        loop.create_task(delete_unused_cbpr_texture_images(os.path.dirname(image_location)))
+
         return {'FINISHED'}
     
     def _raise_if_invalid(self, context):
@@ -118,13 +101,6 @@ class OBJECT_OT_ProjectClipboardOnSelected(bpy.types.Operator):
     @classmethod
     def _is_exactly_one_camera_selected(cls, context):
         return len([obj for obj in bpy.context.selected_objects if obj.type == "CAMERA"]) == 1
-    
-    def _save_image_from_clipboard(self, obj):
-        pil_image = ImageGrab.grabclipboard()
-        filename = f"{datetime.now().strftime('%Y%m%d%H%M%S%f')[:-3]}.png"
-        image_location = os.path.join(bpy.path.abspath(obj.clipboard_projection_textures_location), filename)
-        pil_image.save(image_location)
-        return image_location
 
     def _create_shared_texture_material(self, obj, image_location):
         material = bpy.data.materials.new(name=f"projected material {obj.name}")
@@ -175,7 +151,6 @@ class OBJECT_OT_ProjectClipboardOnSelected(bpy.types.Operator):
         return shared_node_tree
 
     def _validate_node_tree(self, node_tree):
-        print([node.type for node in node_tree.nodes])
         group_input_nodes = [node for node in node_tree.nodes if node.type == 'GROUP_INPUT']
         if not group_input_nodes:
             print("No Group Input node found.")
@@ -187,38 +162,10 @@ class OBJECT_OT_ProjectClipboardOnSelected(bpy.types.Operator):
             return False
 
         return True
-    
-    def _get_first_VIEW_3D_area(self):
-        return next(area for area in bpy.context.screen.areas if area.type == 'VIEW_3D')
-    
-    def _get_first_WINDOW_region(self, area=None):
-        if not area:
-            area = self._get_first_VIEW_3D_area()
-        
-        return next(region for region in area.regions if region.type == 'WINDOW')
-    
-    def _get_first_region_3d(self):
-        area = self._get_first_VIEW_3D_area()
-        if len(area.spaces) == 0:
-            raise RuntimeError("No spaces found in VIEW_3D, cannot perform action")
 
-        return area.spaces[0].region_3d
-    
-    def _get_3d_view_settings(self):
-        rv3d = self._get_first_region_3d()
-        return {
-            'view_location': rv3d.view_location.copy(),
-            'view_rotation': rv3d.view_rotation.copy(),
-            'view_distance': rv3d.view_distance,
-            'view_perspective': rv3d.view_perspective
-        }
-    
-    def _set_3d_view_settings(self, view_3d_settings):
-        rv3d = self._get_first_region_3d()
-        rv3d.view_location = view_3d_settings['view_location']
-        rv3d.view_rotation = view_3d_settings['view_rotation']
-        rv3d.view_distance = view_3d_settings['view_distance']
-        rv3d.view_perspective = view_3d_settings['view_perspective']
+
+def register_project_clipboard_shortcut():
+    shortcut_manager.register_shortcut(OBJECT_OT_ProjectClipboardOnSelected.bl_idname, type='V', value='PRESS', ctrl=True, shift=True)
 
 
 def register():
@@ -236,6 +183,7 @@ def register():
         description="Select a shared shader",
         type=bpy.types.NodeTree,
     )
+    register_project_clipboard_shortcut()
 
 
 def unregister():

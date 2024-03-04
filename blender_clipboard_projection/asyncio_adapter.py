@@ -20,5 +20,8 @@ class AsyncioBlenderAdapter:
 
     def stop(self):
         if self.active_run_function:
-            bpy.app.timers.unregister(self._run_asyncio_loop)
+            bpy.app.timers.unregister(self.active_run_function)
             self.active_run_function = None
+
+
+asyncio_adapter = AsyncioBlenderAdapter()
