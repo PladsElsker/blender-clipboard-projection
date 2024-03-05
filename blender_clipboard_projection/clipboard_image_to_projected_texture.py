@@ -6,6 +6,7 @@ from .clipboard_ops import save_image_from_clipboard
 from .async_file_ops import delete_unused_cbpr_texture_images
 from .shortcuts import shortcut_manager
 from .view_3d_camera_context import VIEW_3D_CameraContext
+from .rigged_mesh_projection import is_rigged_with_armature, project_rigged_from_view_and_transfer_uvs
 
 
 class ClipboardProjectionPanel(bpy.types.Panel):
@@ -47,11 +48,13 @@ class OBJECT_OT_ProjectClipboardOnSelected(bpy.types.Operator):
         material_index = next(index for index, slot in enumerate(obj.material_slots) if slot.material == material)
         bpy.context.object.active_material_index = material_index
 
-        camera = [selected for selected in bpy.context.selected_objects if selected.type == "CAMERA"][0]
-
-        with VIEW_3D_CameraContext(camera) as camera_context:
-            override = {'area': camera_context.area, 'region': camera_context.region, 'edit_object': bpy.context.edit_object}
-            bpy.ops.uv.project_from_view(override, camera_bounds=True, correct_aspect=True, scale_to_bounds=False)
+        if is_rigged_with_armature(obj):
+            project_rigged_from_view_and_transfer_uvs(obj)
+        else:
+            camera = [selected for selected in bpy.context.selected_objects if selected.type == "CAMERA"][0]
+            with VIEW_3D_CameraContext(camera) as camera_context:
+                override = {'area': camera_context.area, 'region': camera_context.region, 'edit_object': bpy.context.edit_object}
+                bpy.ops.uv.project_from_view(override, camera_bounds=True, correct_aspect=True, scale_to_bounds=False)
 
         bpy.ops.object.material_slot_assign()
         
