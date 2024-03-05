@@ -45,18 +45,15 @@ class Handler(FileSystemEventHandler):
 
 
 def zip_directory(folder_path, zip_path, exclude_dir=None):
-    # Remove existing zip file if it exists
     if os.path.exists(zip_path):
         os.remove(zip_path)
     
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(folder_path):
-            # Exclude the specified directory
             if exclude_dir:
                 dirs[:] = [d for d in dirs if d not in exclude_dir]
             for file in files:
                 file_path = os.path.join(root, file)
-                # Check if the file path is within the excluded directory (if specified)
                 if exclude_dir and f"/{exclude_dir}/" in file_path:
                     continue
                 zipf.write(file_path, 
