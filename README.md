@@ -18,10 +18,10 @@ Reverse the process by projecting an image from your clipboard onto a selected m
 
 ## Keyboard shortcuts
 The different operators are mapped to the following shortcuts:
-| Operator                      | Shortcut           |
-| ----------------------------- | ------------------ |
-| Render image to clipboard     | `CTRL + SHIFT + C` |
-| Project clipboard on selected | `CTRL + SHIFT + V` |
+| Operator                  | Shortcut           |
+| ------------------------- | ------------------ |
+| Render image to clipboard | `CTRL + SHIFT + C` |
+| Project clipboard on mesh | `CTRL + SHIFT + V` |
 
 
 ## Important notes
