@@ -7,7 +7,7 @@ This addon introduces two operators that leverage the clipboard for efficient te
 ### Render image to clipboard
 This feature allows you to quickly render an image from a specifically **selected** camera to your clipboard, bypassing the usual process of rendering from the **active** camera. It's a convenient method for capturing renders without the usual navigation through menus.
 
-### Project clipboard on selected
+### Project clipboard on mesh
 Reverse the process by projecting an image from your clipboard onto a selected mesh within Blender, following these steps:
 1) Copy any image to your clipboard (e.g., from Photoshop or the web).
 2) In Blender, select your desired projection camera.
