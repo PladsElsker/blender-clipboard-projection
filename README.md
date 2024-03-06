@@ -2,7 +2,7 @@
 A Blender addon designed to project images from the clipboard onto meshes.
 
 ## Operators
-This addon has two operators that use the clipboard for efficient texture and image data transfer.
+This addon contains two operators that use the clipboard for efficient texture and image data transfer.
 
 ### Render image to clipboard
 This operator allows you to render an image from a specifically **selected** camera to your clipboard, bypassing the usual process of rendering from the **active** camera. 
