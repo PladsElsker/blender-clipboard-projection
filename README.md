@@ -27,4 +27,4 @@ The different operators are mapped to the following shortcuts:
 ## Important notes
 - **Texture Management:** The addon automatically cleans up unused images in the `Textures Location` by deleting any `.cbpr.png` files not used in materials. Ensure each `.blend` file uses unique texture folders to prevent unintended deletions.
 - **Node Group Handling:** Use the `Node Group` field in the `Clipboard Project` panel to manage shader sharing between textures via nodes. Clear the field for textures requiring unique node trees, or retain the setting for textures that are part of a composite.
-- `Rigged Mesh Support:` The addon is fully compatible with rigged meshes, performing necessary operations on a copy of the object and armatures to ensure correct UV projection from the camera, without affecting the original rig.
+- **Rigged Mesh Support:** The addon is fully compatible with rigged meshes, performing necessary operations on a copy of the object and armatures to ensure correct UV projection from the camera, without affecting the original rig.
