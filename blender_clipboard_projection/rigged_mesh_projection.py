@@ -44,7 +44,9 @@ def project_rigged_from_view_and_transfer_uvs(rigged):
     bpy.ops.object.join_uvs()
 
     bpy.ops.object.select_all(action='DESELECT')
-    duplicated_mesh.select_set(True)
+    for duplicated in duplicated_objects:
+        duplicated.select_set(True)
+    
     bpy.ops.object.delete(use_global=False, confirm=False)
 
     for previous_selected in selection_buffer["selected"]:
