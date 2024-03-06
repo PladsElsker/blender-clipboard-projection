@@ -31,5 +31,5 @@ The different operators are mapped to the following shortcuts:
 
 ## Installation
 To install this addon, you can follow these steps:
-1) Click on `Code -> Download zip` on the repository's page
+1) Zip the `blender_clipboard_projection` folder
 2) In Blender, go to `Edit -> Preferences... -> Add-ons -> Install -> select the zip file`
