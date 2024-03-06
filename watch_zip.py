@@ -27,7 +27,6 @@ class Watcher:
 
 class Handler(FileSystemEventHandler):
     @staticmethod
-    @staticmethod
     def on_modified(event):
         if event.is_directory:
             return None
