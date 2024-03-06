@@ -1,5 +1,5 @@
 # blender-clipboard-projection
-A Blender addon designed to project images from your clipboard onto meshes.
+A Blender addon designed to project images from the clipboard onto meshes.
 
 ## Operators
 This addon introduces two operators that leverage the clipboard for efficient texture and image data transfer.
