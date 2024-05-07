@@ -1,9 +1,7 @@
 import bpy
 import os
-import asyncio
 
 from .clipboard_ops import save_image_from_clipboard
-from .async_file_ops import delete_unused_cbpr_texture_images
 from .shortcuts import shortcut_manager
 from .view_3d_camera_context import VIEW_3D_CameraContext
 from .rigged_mesh_projection import is_rigged_with_armature, project_rigged_from_view_and_transfer_uvs
@@ -57,9 +55,6 @@ class OBJECT_OT_ProjectClipboardOnSelected(bpy.types.Operator):
                 bpy.ops.uv.project_from_view(override, camera_bounds=True, correct_aspect=True, scale_to_bounds=False)
 
         bpy.ops.object.material_slot_assign()
-        
-        loop = asyncio.get_event_loop()
-        loop.create_task(delete_unused_cbpr_texture_images(os.path.dirname(image_location)))
 
         return {'FINISHED'}
     
