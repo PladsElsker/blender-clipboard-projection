@@ -22,7 +22,12 @@ def pil_to_clipboard_windows(img):
         img.convert("RGB").save(buffer, format="BMP")
         image_bytes = buffer.getvalue()[14:]
     
-    import win32clipboard
+    try:
+        import win32clipboard
+    except ImportError:
+        import pip
+        pip.main(['install', 'pywin32'])
+
     win32clipboard.OpenClipboard()
     win32clipboard.EmptyClipboard()
     win32clipboard.SetClipboardData(win32clipboard.CF_DIB, image_bytes)

@@ -1,0 +1,14 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Zip watcher.py",
+            "type": "debugpy",
+            "request": "launch",
+            "python": ".venv/Scripts/python.exe",
+            "program": "watch_zip.py",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        }
+    ]
+}

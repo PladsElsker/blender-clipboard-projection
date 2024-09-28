@@ -4,8 +4,9 @@ import zipfile
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+
 class Watcher:
-    DIRECTORY_TO_WATCH = "./"
+    DIRECTORY_TO_WATCH = "./blender_clipboard_projection"
     ZIP_FILE_NAME = "blender_clipboard_projection.zip"
 
     def __init__(self):
@@ -28,37 +29,24 @@ class Watcher:
 class Handler(FileSystemEventHandler):
     @staticmethod
     def on_modified(event):
-        if event.is_directory:
-            return None
-        if Watcher.ZIP_FILE_NAME in event.src_path:
-            return None
-        if "watch_zip.py" in event.src_path:
-            return None
-        if ".venv" in event.src_path:
-            return None
-        if ".git" in event.src_path:
-            return None
-
-        print(f"Change detected: {event.src_path}")
-        zip_directory(Watcher.DIRECTORY_TO_WATCH, Watcher.ZIP_FILE_NAME, exclude_dir=[".venv", ".git"])
+        print(f"Changes detected: {event.src_path}")
+        zip_directory(Watcher.DIRECTORY_TO_WATCH, Watcher.ZIP_FILE_NAME)
 
 
-def zip_directory(folder_path, zip_path, exclude_dir=None):
-    if os.path.exists(zip_path):
+def zip_directory(folder_path, zip_path):
+    if os.path.exists(zip_path) and os.path.isfile(zip_path):
         os.remove(zip_path)
     
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(folder_path):
-            if exclude_dir:
-                dirs[:] = [d for d in dirs if d not in exclude_dir]
             for file in files:
                 file_path = os.path.join(root, file)
-                if exclude_dir and f"/{exclude_dir}/" in file_path:
-                    continue
-                zipf.write(file_path, 
-                           os.path.relpath(file_path, 
-                                           folder_path))
+                zipf.write(
+                    file_path,
+                    file_path
+                )
 
 if __name__ == "__main__":
+    print(f'Starting watcher on {Watcher.DIRECTORY_TO_WATCH}/')
     w = Watcher()
     w.run()
