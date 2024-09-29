@@ -2,11 +2,11 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Zip watcher.py",
+            "name": "Blender dev hook.py",
             "type": "debugpy",
             "request": "launch",
-            "python": ".venv/Scripts/python.exe",
-            "program": "watch_zip.py",
+            "python": "${workspaceFolder}/.venv/Scripts/python.exe",
+            "program": "${workspaceFolder}/blender_hook",
             "console": "integratedTerminal",
             "justMyCode": false
         }
