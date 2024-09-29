@@ -3,7 +3,7 @@ import json
 
 
 CONFIG_FORMATTING = dict(
-    Addon=os.path.basename(os.getcwd())
+    Addon=os.path.basename(os.getcwd()),
 )
 
 
