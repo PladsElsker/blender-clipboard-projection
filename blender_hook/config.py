@@ -8,9 +8,15 @@ CONFIG_FORMATTING = dict(
 
 
 try:
-    with open('blender_config.json', 'r') as json_file:
+    with open('blender.json', 'r') as json_file:
         config = json.load(json_file)
-        for key, value in config.items():
-            config[key] = value.format(**CONFIG_FORMATTING)
+        dict_stack = [config]
+        while dict_stack:
+            d = dict_stack.pop()
+            for key, value in d.items():
+                if isinstance(value, dict):
+                    dict_stack.append(value)
+                elif isinstance(value, str):
+                    d[key] = value.format(**CONFIG_FORMATTING)
 except:
     config = None

@@ -51,8 +51,8 @@ class OBJECT_OT_ProjectClipboardOnSelected(bpy.types.Operator):
         else:
             camera = [selected for selected in bpy.context.selected_objects if selected.type == "CAMERA"][0]
             with VIEW_3D_CameraContext(camera) as camera_context:
-                override = {'area': camera_context.area, 'region': camera_context.region, 'edit_object': bpy.context.edit_object}
-                bpy.ops.uv.project_from_view(override, camera_bounds=True, correct_aspect=True, scale_to_bounds=False)
+                with bpy.context.temp_override(area=camera_context.area, region=camera_context.region, edit_object=bpy.context.edit_object):
+                    bpy.ops.uv.project_from_view(camera_bounds=True, correct_aspect=True, scale_to_bounds=False)
 
         bpy.ops.object.material_slot_assign()
 
@@ -132,8 +132,8 @@ class OBJECT_OT_ProjectClipboardOnSelected(bpy.types.Operator):
         shared_node_tree = bpy.data.node_groups.new(f"projected shader {obj.name}", type="ShaderNodeTree")
         group_inputs = shared_node_tree.nodes.new('NodeGroupInput')
         group_inputs.location = (-400, 0)
-        shared_node_tree.inputs.new('NodeSocketColor', 'Color')
-        shared_node_tree.inputs.new('NodeSocketFloatFactor', 'Alpha')
+        shared_node_tree.interface.new_socket(name='Color', in_out='INPUT', socket_type='NodeSocketColor')
+        shared_node_tree.interface.new_socket(name='Alpha', in_out='INPUT', socket_type='NodeSocketFloat')
 
         emission_node = shared_node_tree.nodes.new('ShaderNodeEmission')
         emission_node.location = (-200, 0)
