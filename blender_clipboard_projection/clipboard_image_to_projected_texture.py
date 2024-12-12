@@ -52,7 +52,7 @@ class OBJECT_OT_ProjectClipboardOnSelected(bpy.types.Operator):
             camera = [selected for selected in bpy.context.selected_objects if selected.type == "CAMERA"][0]
             with VIEW_3D_CameraContext(camera) as camera_context:
                 with bpy.context.temp_override(area=camera_context.area, region=camera_context.region, edit_object=bpy.context.edit_object):
-                    bpy.ops.uv.project_from_view(camera_bounds=True, correct_aspect=True, scale_to_bounds=False)
+                    bpy.ops.uv.project_from_view(camera_bounds=True, correct_aspect=False, scale_to_bounds=False)
 
         bpy.ops.object.material_slot_assign()
 

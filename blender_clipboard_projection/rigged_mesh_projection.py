@@ -32,7 +32,7 @@ def project_rigged_from_view_and_transfer_uvs(rigged):
     camera = [selected for selected in selection_buffer["selected"] if selected.type == "CAMERA"][0]
     with VIEW_3D_CameraContext(camera) as camera_context:
         with bpy.context.temp_override(area=camera_context.area, region=camera_context.region, edit_object=bpy.context.edit_object):
-            bpy.ops.uv.project_from_view(camera_bounds=True, correct_aspect=True, scale_to_bounds=False)
+            bpy.ops.uv.project_from_view(camera_bounds=True, correct_aspect=False, scale_to_bounds=False)
 
     bpy.ops.object.mode_set(mode='OBJECT')
     bpy.ops.object.select_all(action='DESELECT')
